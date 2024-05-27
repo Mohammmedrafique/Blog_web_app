@@ -158,11 +158,11 @@ const deleteStory = asyncErrorWrapper(async (req, res, next) => {
 });
 
 const showUserStories = asyncErrorWrapper(async (req, res, next) => {
-  try {
-    const activeUserId = req.user._id;
+  const { authorId } = req.query; 
 
-    // Find stories authored by the active user
-    const userStories = await Story.find({ author: activeUserId });
+  try {
+    // Find all stories authored by the specified authorId
+    const userStories = await Story.find({ author: authorId }).populate("author likes");
 
     return res.status(200).json({
       success: true,

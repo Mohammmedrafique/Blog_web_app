@@ -3,7 +3,7 @@ import { AuthContext } from "../../Context/AuthContext";
 import axios from "axios";
 import BlogCard from "./BlogCard";
 import styles from "./Dashboard.module.css";
-
+import api from "../../api";
 const Dashboard = () => {
   const { activeUser, config } = useContext(AuthContext);
   const [posts, setPosts] = useState([]);
@@ -20,7 +20,7 @@ const Dashboard = () => {
         let totalPages = 1;
 
         while (page <= totalPages) {
-          const response = await axios.get(`https://masai-blog-ecru.vercel.app/story/getAllStories?page=${page}`, config);
+          const response = await api.get(`/story/getAllStories?page=${page}`, config);
           const { data, pages } = response.data;
 
           allPosts = [...allPosts, ...data];
@@ -50,7 +50,7 @@ const Dashboard = () => {
 
   const saveEdit = async () => {
     try {
-      const url = `http://localhost:5000/story/${editingPost._id}/edit`;
+      const url = `${process.env.REACT_APP_BACKEND_URL}/story/${editingPost._id}/edit`;
       const headers = { Authorization: `Bearer ${config.token}` };
       const response = await axios.put(
         url,
@@ -67,7 +67,7 @@ const Dashboard = () => {
 
   const handleDelete = async (postId) => {
     try {
-      const url = `http://localhost:5000/story/${postId}/delete`;
+      const url = `${process.env.REACT_APP_BACKEND_URL}/story/${postId}/delete`;
       const headers = { Authorization: `Bearer ${config.token}` };
       await axios.delete(url, { headers });
       setPosts(posts.filter(post => post._id !== postId));

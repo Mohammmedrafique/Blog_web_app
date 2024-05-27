@@ -30,6 +30,7 @@
     min-height: 850px;
     width: 1050px;
     margin: 1.2rem auto;
+    margin-top: 0%;
     display: flex;
     justify-content: flex-start;
     flex-wrap: wrap;

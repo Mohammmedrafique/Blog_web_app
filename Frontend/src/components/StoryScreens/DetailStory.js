@@ -115,7 +115,7 @@ const DetailStory = () => {
             authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
         })
-        navigate("/")
+        navigate(-1)
 
       }
       catch (error) {

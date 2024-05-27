@@ -54,6 +54,6 @@ router.delete(
 
 router.get("/getAllStories", getAllStories);
 
-router.get("/:userId/stories",showUserStories);
+router.get("/showUserStories", showUserStories);
 
 module.exports = router;

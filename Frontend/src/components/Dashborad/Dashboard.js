@@ -1,114 +1,67 @@
-import React, { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../../Context/AuthContext";
-import axios from "axios";
-import BlogCard from "./BlogCard";
-import styles from "./Dashboard.module.css";
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import SkeletonStory from "../Skeletons/SkeletonStory";
+import CardStory from "../StoryScreens/CardStory";
+import NoStories from "../StoryScreens/NoStories";
+import "../../Css/Home.css";
 import api from "../../api";
+import { AuthContext } from "../../Context/AuthContext";
+
 const Dashboard = () => {
-  const { activeUser, config } = useContext(AuthContext);
-  const [posts, setPosts] = useState([]);
+  const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editingPost, setEditingPost] = useState(null); // State to manage the post being edited
-  const [newTitle, setNewTitle] = useState("");
-  const [newContent, setNewContent] = useState("");
+  const { activeUser } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const getStories = async () => {
+      setLoading(true);
       try {
-        let allPosts = [];
-        let page = 1;
-        let totalPages = 1;
-
-        while (page <= totalPages) {
-          const response = await api.get(`/story/getAllStories?page=${page}`, config);
-          const { data, pages } = response.data;
-
-          allPosts = [...allPosts, ...data];
-          totalPages = pages;
-          page++;
-        }
-
-        const userPosts = allPosts.filter(post => post.author === activeUser._id);
-        setPosts(userPosts);
+        const { data } = await api.get(
+          `/story/showUserStories?authorId=${activeUser._id}`
+        );
+        setStories(data.data);
+        setLoading(false);
       } catch (error) {
-        console.error("Error fetching posts", error);
-      } finally {
         setLoading(false);
       }
     };
 
-    if (activeUser._id) {
-      fetchPosts();
-    }
-  }, [activeUser, config]);
-
-  const handleEdit = (post) => {
-    setEditingPost(post);
-    setNewTitle(post.title);
-    setNewContent(post.content);
-  };
-
-  const saveEdit = async () => {
-    try {
-      const url = `${process.env.REACT_APP_BACKEND_URL}/story/${editingPost._id}/edit`;
-      const headers = { Authorization: `Bearer ${config.token}` };
-      const response = await axios.put(
-        url,
-        { title: newTitle, content: newContent },
-        { headers }
-      );
-      const updatedPost = response.data;
-      setPosts(posts.map(p => p._id === editingPost._id ? updatedPost : p));
-      setEditingPost(null);
-    } catch (error) {
-      console.error("Error editing post", error);
-    }
-  };
-
-  const handleDelete = async (postId) => {
-    try {
-      const url = `${process.env.REACT_APP_BACKEND_URL}/story/${postId}/delete`;
-      const headers = { Authorization: `Bearer ${config.token}` };
-      await axios.delete(url, { headers });
-      setPosts(posts.filter(post => post._id !== postId));
-    } catch (error) {
-      console.error("Error deleting post", error);
-    }
-  };
-
-  if (loading) {
-    return <p>Loading...</p>;
-  }
+    getStories();
+  }, [activeUser]);
 
   return (
-    <div className={styles.dashboard}>
-      <h1>Your Posts</h1>
-      {posts.length > 0 ? (
-        posts.map(post => (
-          <BlogCard key={post._id} post={post} onEdit={handleEdit} onDelete={handleDelete} />
-        ))
+    <div className="Inclusive-home-page">
+      <h3
+        style={{
+          textAlign: "center",
+          fontWeight: "bold",
+          fontFamily: "Staatliches",
+          marginTop: "10px",
+        }}
+      >
+        Your Blog
+      </h3>
+      {loading ? (
+        <div className="skeleton_emp">
+          {[...Array(6)].map((_, index) => (
+            <SkeletonStory key={index} />
+          ))}
+        </div>
       ) : (
-        <p>No posts found</p>
-      )}
-
-      {editingPost && (
-        <div className={styles.editModal}>
-          <h2>Edit Post</h2>
-          <input 
-            type="text" 
-            value={newTitle} 
-            onChange={(e) => setNewTitle(e.target.value)} 
-            placeholder="Title"
-          />
-          <textarea 
-            value={newContent} 
-            onChange={(e) => setNewContent(e.target.value)} 
-            placeholder="Content"
-          ></textarea>
-          <button onClick={saveEdit}>Save</button>
-          <button onClick={() => setEditingPost(null)}>Cancel</button>
+        <div>
+          <div className="story-card-wrapper">
+            {stories.length !== 0 ? (
+              stories.map((story) => (
+                <CardStory key={story._id} story={story} />
+              ))
+            ) : (
+              <NoStories />
+            )}
+          </div>
         </div>
       )}
+      <br />
     </div>
   );
 };
